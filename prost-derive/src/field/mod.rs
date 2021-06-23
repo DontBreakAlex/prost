@@ -24,6 +24,8 @@ pub enum Field {
     Oneof(oneof::Field),
     /// A group field.
     Group(group::Field),
+    /// An ignored field.
+    Ignore,
 }
 
 impl Field {
@@ -35,6 +37,9 @@ impl Field {
         let attrs = prost_attrs(attrs);
 
         // TODO: check for ignore attribute.
+        if attrs.iter().any(|attr| word_attr("ignore", attr)) {
+            return Ok(Some(Field::Ignore));
+        }
 
         let field = if let Some(field) = scalar::Field::new(&attrs, inferred_tag)? {
             Field::Scalar(field)
@@ -84,6 +89,7 @@ impl Field {
             Field::Map(ref map) => vec![map.tag],
             Field::Oneof(ref oneof) => oneof.tags.clone(),
             Field::Group(ref group) => vec![group.tag],
+            Field::Ignore => vec![],
         }
     }
 
@@ -95,6 +101,7 @@ impl Field {
             Field::Map(ref map) => map.encode(ident),
             Field::Oneof(ref oneof) => oneof.encode(ident),
             Field::Group(ref group) => group.encode(ident),
+            Field::Ignore => quote!(),
         }
     }
 
@@ -107,6 +114,7 @@ impl Field {
             Field::Map(ref map) => map.merge(ident),
             Field::Oneof(ref oneof) => oneof.merge(ident),
             Field::Group(ref group) => group.merge(ident),
+            Field::Ignore => quote!(),
         }
     }
 
@@ -118,6 +126,7 @@ impl Field {
             Field::Message(ref msg) => msg.encoded_len(ident),
             Field::Oneof(ref oneof) => oneof.encoded_len(ident),
             Field::Group(ref group) => group.encoded_len(ident),
+            Field::Ignore => quote!(0),
         }
     }
 
@@ -129,6 +138,7 @@ impl Field {
             Field::Map(ref map) => map.clear(ident),
             Field::Oneof(ref oneof) => oneof.clear(ident),
             Field::Group(ref group) => group.clear(ident),
+            Field::Ignore => quote!(),
         }
     }
 
