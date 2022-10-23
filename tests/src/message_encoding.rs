@@ -392,3 +392,22 @@ pub enum BasicOneof {
     #[prost(string, tag = "9")]
     String(String),
 }
+
+#[derive(Clone, PartialEq, Message)]
+pub struct Ignore {
+    #[prost(ignore)]
+    ignore: i32,
+    #[prost(string, tag = "1")]
+    string: String
+}
+
+#[test]
+fn check_ignored_values() {
+    let ignore = Ignore {
+        ignore: 6,
+        string: "String",
+    };
+    let mut vec = Vec::new();
+
+    assert_eq!("", ignore.encode(&mut vec))
+}
